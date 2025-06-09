@@ -1,19 +1,470 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8">
-  <title>DBA Annonce Generator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBA Automatiseret Annoncegenerator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .input-section {
+            padding: 40px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .output-section {
+            padding: 40px;
+            background: white;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .result-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .image-list {
+            margin-top: 20px;
+        }
+
+        .image-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .image-item .original {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .image-item .new {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            flex: 1;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            flex: 1;
+        }
+
+        .status-message {
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h2>Opret DBA Annonce</h2>
-  <form method="POST" action="https://din-8n8-webhook-url.her" enctype="application/x-www-form-urlencoded">
-    <label for="beskrivelse">Beskrivelse af produkt (skriv frit):</label><br>
-    <textarea id="beskrivelse" name="beskrivelse" rows="6" cols="60" placeholder="F.eks. Brugt Bosch elcykelbatteri, model 625Wh, virker fint, pris 2200 kr..."></textarea><br><br>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 DBA Automatiseret Annoncegenerator</h1>
+            <p>Fra beskrivelse og billeder til færdig DBA-annonce på få minutter</p>
+        </div>
 
-    <label for="billeder">Billed-URL’er fra pCloud (én pr. linje, gerne med beskrivelse efter “–”):</label><br>
-    <textarea id="billeder" name="billeder" rows="5" cols="60" placeholder="https://my.pcloud.com/billede1.jpg – top&#10;https://my.pcloud.com/billede2.jpg – etiket"></textarea><br><br>
+        <div class="main-content">
+            <div class="input-section">
+                <h2 style="margin-bottom: 30px; color: #333;">📝 Input</h2>
+                
+                <form id="adForm">
+                    <div class="form-group">
+                        <label for="description">Produktbeskrivelse</label>
+                        <textarea id="description" placeholder="F.eks: Brugt Bosch elcykelbatteri 625 Wh, virker fint, sælges for 2.200 kr" required></textarea>
+                    </div>
 
-    <input type="submit" value="Send til assistenten">
-  </form>
+                    <div class="form-group">
+                        <label for="pcloudUrl">pCloud Public Folder URL</label>
+                        <input type="url" id="pcloudUrl" placeholder="https://e.pcloud.link/publink/show?code=..." required>
+                    </div>
+
+                    <button type="submit" class="btn" id="generateBtn">
+                        🚀 Generer DBA Annonce
+                    </button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyserer billeder og genererer annonce...</p>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h2 style="margin-bottom: 30px; color: #333;">📋 Resultat</h2>
+                
+                <div id="results" class="results">
+                    <div class="result-card">
+                        <h3>📰 Titel</h3>
+                        <p id="generatedTitle"></p>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>📝 Beskrivelse</h3>
+                        <p id="generatedDescription"></p>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>💰 Pris</h3>
+                        <p id="generatedPrice"></p>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>📂 Kategori</h3>
+                        <p id="generatedCategory"></p>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🔍 Søgeord</h3>
+                        <div id="generatedTags" class="tags"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🖼️ SEO Billeder</h3>
+                        <div id="generatedImages" class="image-list"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-approve" onclick="approveAd()">
+                            ✅ Godkend & Publicer
+                        </button>
+                        <button class="btn btn-edit" onclick="editAd()">
+                            ✏️ Rediger
+                        </button>
+                    </div>
+                </div>
+
+                <div id="statusMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // VIGTIGT: Ændre denne URL til din n8n webhook URL
+        const WEBHOOK_URL = 'https://velosoglobal.app.n8n.cloud/webhook-test/dba-generator';
+
+        document.getElementById('adForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const description = document.getElementById('description').value;
+            const pcloudUrl = document.getElementById('pcloudUrl').value;
+            
+            if (!description || !pcloudUrl) {
+                showStatus('Udfyld venligst alle felter', 'error');
+                return;
+            }
+
+            // Vis loading
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            clearStatus();
+            
+            try {
+                // Kald til n8n webhook
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: description,
+                        pcloud_url: pcloudUrl
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('✅ Annonce genereret succesfuldt! Check din email for preview.', 'success');
+                    
+                    // Vis dummy resultater (da den rigtige data kommer via email)
+                    displayResults({
+                        titel: result.data.titel || "Din annonce er genereret",
+                        beskrivelse: "Annoncen er sendt til din email til godkendelse.",
+                        pris: result.data.pris || "Se email",
+                        kategori: result.data.kategori || "Cykler > Elcykler og tilbehør",
+                        søgeord: ["Se", "email", "for", "detaljer"],
+                        seo_billeder: []
+                    });
+                } else {
+                    throw new Error(result.message || 'Ukendt fejl opstod');
+                }
+                
+            } catch (error) {
+                console.error('Fejl:', error);
+                showStatus('Der opstod en fejl: ' + error.message, 'error');
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            document.getElementById('generatedTitle').textContent = data.titel;
+            document.getElementById('generatedDescription').textContent = data.beskrivelse;
+            document.getElementById('generatedPrice').textContent = data.pris;
+            document.getElementById('generatedCategory').textContent = data.kategori;
+            
+            // Vis søgeord
+            const tagsContainer = document.getElementById('generatedTags');
+            tagsContainer.innerHTML = '';
+            data.søgeord.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag';
+                tagElement.textContent = tag;
+                tagsContainer.appendChild(tagElement);
+            });
+            
+            // Vis billeder
+            const imagesContainer = document.getElementById('generatedImages');
+            imagesContainer.innerHTML = '';
+            if (data.seo_billeder && data.seo_billeder.length > 0) {
+                data.seo_billeder.forEach(img => {
+                    const imgElement = document.createElement('div');
+                    imgElement.className = 'image-item';
+                    imgElement.innerHTML = `
+                        <span class="original">${img.original}</span>
+                        <span>→</span>
+                        <span class="new">${img.ny}</span>
+                    `;
+                    imagesContainer.appendChild(imgElement);
+                });
+            } else {
+                imagesContainer.innerHTML = '<p>Billeder proceseret - se email for detaljer</p>';
+            }
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function approveAd() {
+            showStatus('Godkendelse sker via email-linket du modtog', 'success');
+        }
+
+        function editAd() {
+            showStatus('Redigering sker via email-linket du modtog', 'success');
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+        }
+
+        function clearStatus() {
+            document.getElementById('statusMessage').innerHTML = '';
+        }
+
+        // Auto-fill demo data
+        setTimeout(() => {
+            document.getElementById('description').value = 'Bosch elcykel batteri 500 Wh til Riese Müller. Batteriet virker perfekt og holder god strøm. Sælges for 2.800 kr';
+            document.getElementById('pcloudUrl').value = 'https://e.pcloud.link/publink/show?code=kZPhltZ0wKtcKpGLoSumej6eONg24nLNrek';
+        }, 500);
+    </script>
 </body>
 </html>
