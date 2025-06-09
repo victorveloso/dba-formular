@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>DBA Annonce Generator</title>
+</head>
+<body>
+  <h2>Opret DBA Annonce</h2>
+  <form method="POST" action="https://din-8n8-webhook-url.her" enctype="application/x-www-form-urlencoded">
+    <label for="beskrivelse">Beskrivelse af produkt (skriv frit):</label><br>
+    <textarea id="beskrivelse" name="beskrivelse" rows="6" cols="60" placeholder="F.eks. Brugt Bosch elcykelbatteri, model 625Wh, virker fint, pris 2200 kr..."></textarea><br><br>
+
+    <label for="billeder">Billed-URL’er fra pCloud (én pr. linje, gerne med beskrivelse efter “–”):</label><br>
+    <textarea id="billeder" name="billeder" rows="5" cols="60" placeholder="https://my.pcloud.com/billede1.jpg – top&#10;https://my.pcloud.com/billede2.jpg – etiket"></textarea><br><br>
+
+    <input type="submit" value="Send til assistenten">
+  </form>
+</body>
+</html>
